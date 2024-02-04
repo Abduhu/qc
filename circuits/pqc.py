@@ -6,6 +6,37 @@ from qiskit import Aer, transpile
 from typing import Dict
 from copy import deepcopy
 
+def create_pqc(nb_qubits, nb_layers, params):
+    """
+    Example :
+        
+        nb_layers = 2
+        nb_qubits = 3
+        nb_params = (3 * nb_qubits + nb_qubits * (nb_qubits - 1) // 2) * nb_layers
+        params = 2 * np.pi * np.random.rand(nb_params)
+        # params = np.arange(nb_params)
+        qc = create_pqc(nb_qubits, nb_layers, params)
+
+    """
+    assert (3 * nb_qubits + nb_qubits * (nb_qubits - 1) // 2) * nb_layers == len(params), 'Wrong number of parameters'
+
+    qc = QuantumCircuit(nb_qubits)
+    param_index = 0
+    for i in range(nb_layers):
+        # Rotation
+        for j in range(nb_qubits):
+            qc.rz(params[param_index], j)
+            qc.rx(params[param_index + 1], j)
+            qc.rz(params[param_index + 2], j)
+            param_index += 3
+            
+        # Entanglement
+        for j in range(nb_qubits - 1):
+            for k in range(j + 1, nb_qubits):
+                qc.rxx(params[param_index], j, k)
+                param_index += 1
+    return qc
+
 
 class PQC:
     """
